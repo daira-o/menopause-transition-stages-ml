@@ -1,0 +1,10 @@
+Logica de division de nodos del Random Forest
+=============================================
+
+Cada arbol evalua divisiones binarias del tipo variable <= umbral. Para cada nodo, el algoritmo selecciona la division que mas reduce la impureza segun el criterio optimizado: gini.
+
+Con criterion='gini', se minimiza la probabilidad de clasificar mal un registro si se etiqueta segun la distribucion del nodo. Con criterion='entropy', se maximiza la ganancia de informacion.
+
+La profundidad se limita a max_depth=15 para reducir sobreajuste y favorecer patrones biologicos generalizables. Ademas, min_samples_leaf=10 impide hojas demasiado pequenas, protegiendo la estabilidad de las etapas minoritarias.
+
+class_weight='balanced' ajusta el peso de cada clase de forma inversa a su frecuencia, sin generar observaciones sinteticas.
