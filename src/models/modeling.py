@@ -1,7 +1,7 @@
 """
 src/models/modeling.py
 ----------------------
-Utilidades compartidas para entrenar y evaluar modelos STATUS5.
+Shared utilities for training and evaluating STATUS5 models.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ CLASS_NAMES = {
 }
 @dataclass(frozen=True)
 class TrainingArtifacts:
-    """Rutas de los artefactos generados durante el entrenamiento."""
+    """Paths for artifacts generated during training."""
 
     model_path: Path
     confusion_matrix_path: Path
@@ -44,7 +44,7 @@ class TrainingArtifacts:
 
 @dataclass(frozen=True)
 class TrainingSummary:
-    """Resumen minimo para impresion por consola o notebooks."""
+    """Minimal summary for console output or notebooks."""
 
     best_cv_f1_macro: float
     final_cv_f1_macro: float
@@ -58,13 +58,13 @@ def load_preprocessed_dataset(
     path: Path,
     target_column: str = TARGET_COLUMN,
 ) -> tuple[pd.DataFrame, pd.Series]:
-    """Carga datos_limpios.csv y separa predictores de la variable objetivo."""
+    """Load datos_limpios.csv and separate predictors from the target variable."""
     if not path.exists():
-        raise FileNotFoundError(f"No se encontro el dataset preprocesado: {path}")
+        raise FileNotFoundError(f"Preprocessed dataset not found: {path}")
 
     df = pd.read_csv(path)
     if target_column not in df.columns:
-        raise KeyError(f"No se encontro la variable objetivo '{target_column}'.")
+        raise KeyError(f"Target variable '{target_column}' was not found.")
 
     y = pd.to_numeric(df[target_column], errors="raise").astype(int)
     x = df.drop(columns=[target_column])
@@ -72,7 +72,7 @@ def load_preprocessed_dataset(
 
 
 def make_cv(n_splits: int, random_state: int) -> StratifiedKFold:
-    """Crea Stratified K-Fold para preservar la proporcion de STATUS5 por fold."""
+    """Create Stratified K-Fold to preserve the STATUS5 class proportion per fold."""
     return StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
 
 
@@ -86,7 +86,7 @@ def _serializable_params(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def compute_metrics(y_true: pd.Series, y_pred: pd.Series) -> dict[str, float]:
-    """Calcula las metricas comparables entre modelos."""
+    """Compute metrics that can be compared across models."""
     return {
         "accuracy": float(accuracy_score(y_true, y_pred)),
         "f1_macro": float(f1_score(y_true, y_pred, average="macro", zero_division=0)),
@@ -102,7 +102,7 @@ def save_evaluation_outputs(
     metrics: dict[str, float],
     artifacts: TrainingArtifacts,
 ) -> None:
-    """Guarda matriz de confusion, reporte por clase, metricas y parametros."""
+    """Save confusion matrix, per-class report, metrics, and parameters."""
     artifacts.confusion_matrix_path.parent.mkdir(parents=True, exist_ok=True)
 
     cm = confusion_matrix(y_true, y_pred, labels=labels)
@@ -141,7 +141,7 @@ def save_feature_importance(
     importances: list[float],
     path: Path | None,
 ) -> None:
-    """Guarda importancia de variables si el modelo la expone."""
+    """Save feature importance if the model exposes it."""
     if path is None:
         return
 

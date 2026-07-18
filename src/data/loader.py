@@ -1,8 +1,8 @@
 """
 src/data/loader.py
 ------------------
-Módulo de carga de datos.
-Responsabilidad única: leer el archivo de entrada y devolver un DataFrame crudo.
+Data-loading module.
+Single responsibility: read the input file and return a raw DataFrame.
 """
 
 import pandas as pd
@@ -13,29 +13,29 @@ from src.data.constants import MISSING_VALUE_CODES
 
 def load_tsv(path: Path) -> pd.DataFrame:
     """
-    Lee un archivo TSV y retorna un DataFrame.
+    Read a TSV file and return a DataFrame.
 
     Parameters
     ----------
     path : Path
-        Ruta al archivo .tsv
+        Path to the .tsv file.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame crudo (df_raw).
+        Raw DataFrame (df_raw).
 
     Raises
     ------
     FileNotFoundError
-        Si el archivo no existe en la ruta indicada.
+        If the file does not exist at the given path.
     ValueError
-        Si el archivo está vacío o no puede parsearse.
+        If the file is empty or cannot be parsed.
     """
     if not path.exists():
         raise FileNotFoundError(
-            f"No se encontró el archivo de entrada: '{path}'\n"
-            f"Coloca 'datos.tsv' en la carpeta: {path.parent}"
+            f"Input file not found: '{path}'\n"
+            f"Place 'datos.tsv' in this folder: {path.parent}"
         )
 
     df = pd.read_csv(
@@ -47,8 +47,8 @@ def load_tsv(path: Path) -> pd.DataFrame:
     )
 
     if df.empty:
-        raise ValueError(f"El archivo '{path.name}' está vacío o no pudo parsearse correctamente.")
+        raise ValueError(f"The file '{path.name}' is empty or could not be parsed correctly.")
 
-    print(f"  ✔ Archivo cargado: '{path.name}'")
-    print(f"  → Dimensiones: {df.shape[0]:,} filas × {df.shape[1]:,} columnas")
+    print(f"  Loaded file: '{path.name}'")
+    print(f"  Dimensions: {df.shape[0]:,} rows x {df.shape[1]:,} columns")
     return df

@@ -1,7 +1,7 @@
 """
 src/evaluation/visualizer.py
 ----------------------------
-Componentes Streamlit para analizar resultados STATUS5.
+Streamlit components for analyzing STATUS5 results.
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ CLASS_LABELS = {
 
 def _assert_exists(path: Path, label: str) -> bool:
     if not path.exists():
-        st.warning(f"No se encontro {label}: {path}")
+        st.warning(f"{label} not found: {path}")
         return False
     return True
 
@@ -117,8 +117,8 @@ def load_model_result(model_key: str, cfg: dict[str, Any]) -> dict[str, Any]:
 
 
 def render_sidebar(model_artifacts: dict[str, dict[str, Any]]) -> None:
-    st.sidebar.header("Artefactos")
-    st.sidebar.caption("Resultados usados por esta app")
+    st.sidebar.header("Artifacts")
+    st.sidebar.caption("Results used by this app")
     lines = []
     for cfg in model_artifacts.values():
         lines.extend(
@@ -139,14 +139,14 @@ def render_metric_cards(result: dict[str, Any]) -> None:
     cols[0].metric("F1 macro", f"{metrics['f1_macro']:.3f}")
     cols[1].metric("F1 weighted", f"{metrics['f1_weighted']:.3f}")
     cols[2].metric("Accuracy CV", f"{metrics['accuracy']:.3f}")
-    cols[3].metric("Pacientes evaluados", f"{total_support}")
+    cols[3].metric("Evaluated patients", f"{total_support}")
 
 
 def render_final_figure(filename: str, caption: str) -> None:
     path = FIGURES_DIR / filename
     image = load_image_bytes(path)
     if image is None:
-        st.info(f"Figura pendiente. Ejecuta python generate_figures.py para crear {filename}.")
+        st.info(f"Pending figure. Run python generate_figures.py to create {filename}.")
         return
     st.image(image, caption=caption, use_column_width=True)
 
@@ -154,26 +154,26 @@ def render_final_figure(filename: str, caption: str) -> None:
 def render_shap_interpretability() -> None:
     st.subheader("SHAP Interpretability")
     st.write(
-        "SHAP resume cuanto contribuye cada variable clinica al cambio de la "
-        "prediccion del Random Forest. En este problema multiclase se promedia "
-        "el valor absoluto de SHAP entre clases, por lo que valores mayores "
-        "indican mayor influencia global sobre la clasificacion STATUS5."
+        "SHAP summarizes how much each clinical variable contributes to changes "
+        "in the Random Forest prediction. In this multiclass problem, absolute "
+        "SHAP values are averaged across classes, so larger values indicate "
+        "greater global influence on STATUS5 classification."
     )
     st.caption(
-        "Las figuras se limitan a las 10 variables principales para mantener "
-        "interpretacion global legible y apta para paper, sin analisis individual por paciente."
+        "Figures are limited to the top 10 variables to keep the global "
+        "interpretation readable and paper-ready, without patient-level analysis."
     )
 
     left, right = st.columns(2)
     with left:
         render_final_figure(
             "shap_global_bar_top10.png",
-            "Importancia SHAP global promedio entre clases - top 10.",
+            "Global SHAP importance averaged across classes - top 10.",
         )
     with right:
         render_final_figure(
             "shap_summary_top10.png",
-            "Distribucion por registro del |SHAP| promedio multiclase - top 10.",
+            "Record-level distribution of average multiclass |SHAP| - top 10.",
         )
 
     if SHAP_IMPORTANCE_FILE.exists():
@@ -186,24 +186,24 @@ def render_shap_interpretability() -> None:
 
 
 def render_standard_figures() -> None:
-    st.subheader("Figuras finales")
-    st.caption("Figuras PNG estandarizadas en outputs/figures para dashboard y manuscrito.")
+    st.subheader("Final Figures")
+    st.caption("Standardized PNG figures in outputs/figures for the dashboard and manuscript.")
 
     first, second = st.columns(2)
     with first:
-        render_final_figure("class_distribution.png", "Distribucion de clases STATUS5.")
+        render_final_figure("class_distribution.png", "STATUS5 class distribution.")
         render_final_figure("feature_importance_top10.png", "Feature importance Random Forest - top 10.")
     with second:
-        render_final_figure("confusion_matrix.png", "Matriz de confusion validada cruzadamente.")
-        render_final_figure("missing_values.png", "Porcentaje de valores faltantes tras preprocessing.")
+        render_final_figure("confusion_matrix.png", "Cross-validated confusion matrix.")
+        render_final_figure("missing_values.png", "Missing-value percentage after preprocessing.")
 
     render_final_figure(
         "correlation_heatmap_top_features.png",
-        "Correlacion Spearman entre variables principales.",
+        "Spearman correlation among top variables.",
     )
     render_final_figure(
         "symptom_boxplots_by_status.png",
-        "Distribucion de sintomas seleccionados por clase STATUS5.",
+        "Distribution of selected symptoms by STATUS5 class.",
     )
 
 
@@ -212,25 +212,25 @@ def render_single_model(result: dict[str, Any]) -> None:
     render_metric_cards(result)
 
     tab_metrics, tab_model, tab_shap, tab_figures, tab_files = st.tabs(
-        ["Metricas", "Modelo", "SHAP Interpretability", "Figuras finales", "Artefactos"]
+        ["Metrics", "Model", "SHAP Interpretability", "Final Figures", "Artifacts"]
     )
 
     with tab_metrics:
         left, right = st.columns([1.05, 0.95])
 
         with left:
-            st.subheader("Matriz de confusion")
+            st.subheader("Confusion Matrix")
             st.dataframe(
                 result["cm"].style.background_gradient(cmap="Blues", axis=None),
                 use_container_width=True,
             )
 
         with right:
-            st.subheader("F1-score por clase")
+            st.subheader("F1-score by Class")
             per_class = class_rows(result["report"])
             st.bar_chart(per_class.set_index("clase")[["f1-score"]], height=320)
 
-        st.subheader("Reporte completo")
+        st.subheader("Full Report")
         visible_cols = ["precision", "recall", "f1-score", "support"]
         st.dataframe(
             result["report"][visible_cols].style.format(
@@ -248,20 +248,20 @@ def render_single_model(result: dict[str, Any]) -> None:
         left, right = st.columns([0.8, 1.2])
 
         with left:
-            st.subheader("Mejores hiperparametros")
+            st.subheader("Best Hyperparameters")
             st.json(result["params"])
 
             st.subheader("Pipeline")
             st.code(str(result["model"]), language="text")
 
         with right:
-            st.subheader("Importancia de variables")
+            st.subheader("Feature Importance")
             importances = result["feature_importance"]
             if importances is None:
-                st.info("No hay feature_importance guardado para este modelo.")
+                st.info("No feature_importance file was saved for this model.")
             else:
                 top_n = st.slider(
-                    "Cantidad de variables",
+                    "Number of variables",
                     5,
                     min(30, len(importances)),
                     min(15, len(importances)),
@@ -280,20 +280,20 @@ def render_single_model(result: dict[str, Any]) -> None:
     with tab_files:
         node_logic = result["node_logic"]
         if node_logic:
-            st.subheader("Logica de division de nodos")
+            st.subheader("Node-Splitting Logic")
             st.code(node_logic, language="text")
 
-        st.subheader("Archivos")
+        st.subheader("Files")
         paths = result["paths"]
         st.download_button(
-            "Descargar classification_report",
+            "Download classification_report",
             Path(paths["classification_report"]).read_bytes(),
             file_name=Path(paths["classification_report"]).name,
             mime="text/csv",
             key=f"report_{result['key']}",
         )
         st.download_button(
-            "Descargar confusion_matrix",
+            "Download confusion_matrix",
             Path(paths["confusion_matrix"]).read_bytes(),
             file_name=Path(paths["confusion_matrix"]).name,
             mime="text/csv",
@@ -302,19 +302,19 @@ def render_single_model(result: dict[str, Any]) -> None:
 
 
 def render_streamlit_app(model_artifacts: dict[str, dict[str, Any]]) -> None:
-    """Renderiza la app Streamlit de analisis del modelo."""
+    """Render the Streamlit model-analysis app."""
     st.set_page_config(page_title="STATUS5 - Random Forest", layout="wide")
-    st.title("Analisis del modelo STATUS5")
-    st.caption("Validacion Stratified K-Fold, Optuna y F1 macro como metrica principal.")
+    st.title("STATUS5 Model Analysis")
+    st.caption("Stratified K-Fold validation, Optuna, and macro F1 as the primary metric.")
 
     render_sidebar(model_artifacts)
 
     available_keys = existing_model_keys(model_artifacts)
     if not available_keys:
-        st.error("No se encontraron artefactos entrenados. Ejecuta python train_model.py.")
+        st.error("No trained artifacts were found. Run python train_model.py.")
         for model_key, cfg in model_artifacts.items():
-            _assert_exists(cfg["classification_report"], f"reporte de {model_key}")
-            _assert_exists(cfg["confusion_matrix"], f"matriz de {model_key}")
+            _assert_exists(cfg["classification_report"], f"{model_key} report")
+            _assert_exists(cfg["confusion_matrix"], f"{model_key} confusion matrix")
         st.stop()
 
     results = {

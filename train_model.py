@@ -1,9 +1,9 @@
 """
 train_model.py
 --------------
-Entrenamiento Random Forest para STATUS5.
+Random Forest training for STATUS5.
 
-Uso:
+Usage:
     python train_model.py
 """
 
@@ -49,7 +49,7 @@ def build_artifacts() -> TrainingArtifacts:
 
 
 def sync_legacy_random_forest_outputs(summary: TrainingSummary) -> None:
-    """Mantiene compatibilidad con rutas historicas del pipeline."""
+    """Keep compatibility with historical pipeline paths."""
     copies: list[tuple[Path | None, Path | None]] = [
         (summary.artifacts.model_path, MODEL_FILE),
         (summary.artifacts.confusion_matrix_path, CONFUSION_MATRIX_FILE),
@@ -66,23 +66,23 @@ def sync_legacy_random_forest_outputs(summary: TrainingSummary) -> None:
 def print_summary(summary: TrainingSummary, elapsed: float) -> None:
     display_name = MODEL_ARTIFACTS["random_forest"]["display_name"]
     print("\n============================================================")
-    print(f"  ENTRENAMIENTO STATUS5 COMPLETADO: {display_name}")
+    print(f"  STATUS5 TRAINING COMPLETE: {display_name}")
     print("============================================================")
-    print(f"  Distribucion de clases     : {summary.class_counts}")
-    print(f"  Mejor F1 macro Optuna      : {summary.best_cv_f1_macro:.4f}")
-    print(f"  F1 macro final CV          : {summary.final_cv_f1_macro:.4f}")
-    print(f"  Accuracy final CV          : {summary.metrics['accuracy']:.4f}")
-    print(f"  F1 weighted final CV       : {summary.metrics['f1_weighted']:.4f}")
-    print(f"  Mejores hiperparametros    : {summary.best_params}")
-    print(f"  Modelo guardado            : {summary.artifacts.model_path}")
-    print(f"  Metricas JSON              : {summary.artifacts.metrics_path}")
-    print(f"  Matriz de confusion        : {summary.artifacts.confusion_matrix_path}")
-    print(f"  Reporte por clase          : {summary.artifacts.classification_report_path}")
+    print(f"  Class distribution         : {summary.class_counts}")
+    print(f"  Best Optuna macro F1       : {summary.best_cv_f1_macro:.4f}")
+    print(f"  Final CV macro F1          : {summary.final_cv_f1_macro:.4f}")
+    print(f"  Final CV accuracy          : {summary.metrics['accuracy']:.4f}")
+    print(f"  Final CV weighted F1       : {summary.metrics['f1_weighted']:.4f}")
+    print(f"  Best hyperparameters       : {summary.best_params}")
+    print(f"  Saved model                : {summary.artifacts.model_path}")
+    print(f"  Metrics JSON               : {summary.artifacts.metrics_path}")
+    print(f"  Confusion matrix           : {summary.artifacts.confusion_matrix_path}")
+    print(f"  Per-class report           : {summary.artifacts.classification_report_path}")
     if summary.artifacts.feature_importance_path is not None:
         print(f"  Feature importance         : {summary.artifacts.feature_importance_path}")
     if summary.artifacts.node_split_logic_path is not None:
-        print(f"  Logica de nodos            : {summary.artifacts.node_split_logic_path}")
-    print(f"  Tiempo modelo              : {elapsed:.1f}s")
+        print(f"  Node logic                 : {summary.artifacts.node_split_logic_path}")
+    print(f"  Model time                 : {elapsed:.1f}s")
     print("============================================================")
 
 
@@ -104,12 +104,12 @@ def main() -> None:
     sync_legacy_random_forest_outputs(summary)
     print_summary(summary, elapsed=time.time() - model_start)
 
-    print(f"\nTiempo total: {time.time() - start:.1f}s")
+    print(f"\nTotal time: {time.time() - start:.1f}s")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        print(f"\n  Error fatal durante entrenamiento: {exc}", file=sys.stderr)
+        print(f"\n  Fatal training error: {exc}", file=sys.stderr)
         sys.exit(1)

@@ -1,7 +1,7 @@
 """
 src/models/random_forest.py
 ---------------------------
-Entrenamiento Random Forest baseline para STATUS5.
+Random Forest baseline training for STATUS5.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ from src.models.modeling import (
 
 def protected_min_samples_leaf_upper_bound(y: pd.Series, n_splits: int) -> int:
     """
-    Define un techo conservador para min_samples_leaf segun la clase minoritaria.
+    Define a conservative upper bound for min_samples_leaf from the minority class.
     """
     min_class_count = int(y.value_counts().min())
     min_train_count = int(min_class_count * (n_splits - 1) / n_splits)
@@ -36,7 +36,7 @@ def protected_min_samples_leaf_upper_bound(y: pd.Series, n_splits: int) -> int:
 
 
 def build_random_forest_model(params: dict[str, Any], random_state: int) -> Pipeline:
-    """Construye el pipeline de imputacion mediana + Random Forest balanceado."""
+    """Build the median-imputation + balanced Random Forest pipeline."""
     classifier = RandomForestClassifier(
         **params,
         class_weight="balanced",
@@ -59,7 +59,7 @@ def optimize_random_forest(
     n_trials: int,
     random_state: int,
 ) -> optuna.study.Study:
-    """Optimiza hiperparametros con F1 macro como metrica objetivo."""
+    """Optimize hyperparameters with macro F1 as the objective metric."""
     max_leaf = protected_min_samples_leaf_upper_bound(y, cv.n_splits)
 
     def objective(trial: optuna.Trial) -> float:
@@ -88,26 +88,27 @@ def optimize_random_forest(
 
 
 def node_split_logic_text(best_params: dict[str, Any]) -> str:
-    """Resume como Random Forest decide las divisiones de nodos."""
+    """Summarize how the Random Forest decides node splits."""
     criterion = best_params["criterion"]
     max_depth = best_params["max_depth"]
     min_samples_leaf = best_params["min_samples_leaf"]
 
     return (
-        "Logica de division de nodos del Random Forest\n"
-        "=============================================\n\n"
-        "Cada arbol evalua divisiones binarias del tipo variable <= umbral. "
-        "Para cada nodo, el algoritmo selecciona la division que mas reduce "
-        f"la impureza segun el criterio optimizado: {criterion}.\n\n"
-        "Con criterion='gini', se minimiza la probabilidad de clasificar mal "
-        "un registro si se etiqueta segun la distribucion del nodo. Con "
-        "criterion='entropy', se maximiza la ganancia de informacion.\n\n"
-        f"La profundidad se limita a max_depth={max_depth} para reducir "
-        "sobreajuste y favorecer patrones biologicos generalizables. "
-        f"Ademas, min_samples_leaf={min_samples_leaf} impide hojas demasiado "
-        "pequenas, protegiendo la estabilidad de las etapas minoritarias.\n\n"
-        "class_weight='balanced' ajusta el peso de cada clase de forma inversa "
-        "a su frecuencia, sin generar observaciones sinteticas."
+        "Random Forest node-splitting logic\n"
+        "==================================\n\n"
+        "Each tree evaluates binary splits of the form variable <= threshold. "
+        "For each node, the algorithm selects the split that most reduces "
+        f"impurity according to the optimized criterion: {criterion}.\n\n"
+        "With criterion='gini', the model minimizes the probability of "
+        "misclassifying a record if it is labeled according to the node "
+        "distribution. With criterion='entropy', the model maximizes "
+        "information gain.\n\n"
+        f"Depth is limited to max_depth={max_depth} to reduce overfitting and "
+        "favor biologically generalizable patterns. "
+        f"In addition, min_samples_leaf={min_samples_leaf} prevents leaves from "
+        "becoming too small, protecting stability for minority stages.\n\n"
+        "class_weight='balanced' weights each class inversely to its frequency "
+        "without generating synthetic observations."
     )
 
 
@@ -119,7 +120,7 @@ def train_random_forest(
     n_trials: int,
     random_state: int,
 ) -> TrainingSummary:
-    """Ejecuta tuning, validacion cruzada final y ajuste del baseline."""
+    """Run tuning, final cross-validation, and baseline fitting."""
     x_numeric = x.apply(pd.to_numeric, errors="coerce")
     study = optimize_random_forest(
         x=x_numeric,

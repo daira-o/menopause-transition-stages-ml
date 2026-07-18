@@ -1,8 +1,8 @@
 """
 tests/test_cleaner.py
 ---------------------
-Tests unitarios para los filtros de limpieza.
-Ejecutar con:  pytest tests/
+Unit tests for the cleaning filters.
+Run with:  pytest tests/
 """
 
 import pandas as pd
@@ -17,29 +17,29 @@ from src.data.cleaner import (
 )
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures.
 
 @pytest.fixture
 def df_con_nulos():
-    """DataFrame con una columna que supera el 50% de nulos."""
+    """DataFrame with one column above 50% missing values."""
     return pd.DataFrame({
         "id":       [1, 2, 3, 4, 5, 6],
         "nombre":   ["a", "b", "c", "d", "e", "f"],
-        "col_mala": [None, None, None, None, "x", None],  # 83% nulos → debe eliminarse
+        "col_mala": [None, None, None, None, "x", None],  # 83% missing -> should be removed
     })
 
 
 @pytest.fixture
 def df_con_varianza_baja():
-    """DataFrame con una columna cuasi-constante (>95% mismo valor)."""
+    """DataFrame with one near-constant column (>95% same value)."""
     return pd.DataFrame({
         "id":        range(100),
-        "constante": ["SI"] * 97 + ["NO"] * 3,  # 97% → debe eliminarse
+        "constante": ["SI"] * 97 + ["NO"] * 3,  # 97% -> should be removed
         "variable":  range(100),
     })
 
 
-# ── Tests filter_high_nullity ─────────────────────────────────────────────────
+# Tests for filter_high_nullity.
 
 def test_elimina_columna_con_muchos_nulos(df_con_nulos):
     df_out, log = filter_high_nullity(df_con_nulos, umbral=0.50)
@@ -51,8 +51,8 @@ def test_elimina_columna_con_muchos_nulos(df_con_nulos):
 def test_conserva_columna_con_pocos_nulos():
     df = pd.DataFrame({"a": [1, None, 3, 4], "b": [None, None, None, 4]})
     df_out, log = filter_high_nullity(df, umbral=0.50)
-    assert "a" in df_out.columns    # 25% nulos → conservada
-    assert "b" not in df_out.columns  # 75% nulos → eliminada
+    assert "a" in df_out.columns    # 25% missing -> kept
+    assert "b" not in df_out.columns  # 75% missing -> removed
 
 
 def test_sin_nulos_no_elimina_nada():
@@ -72,7 +72,7 @@ def test_reemplaza_missing_codes_pero_conserva_menos_uno():
     assert df_out.loc[3, "b"] == "-1"
 
 
-# ── Tests filter_low_variance ─────────────────────────────────────────────────
+# Tests for filter_low_variance.
 
 def test_elimina_columna_cuasi_constante(df_con_varianza_baja):
     df_out, log = filter_low_variance(df_con_varianza_baja, umbral=0.95)
@@ -91,7 +91,7 @@ def test_columna_vacia_se_elimina():
     assert "vacia" not in df_out.columns
 
 
-# ── Tests run_cleaning (integración) ─────────────────────────────────────────
+# Integration tests for run_cleaning.
 
 def _df_preliminar_valido(n=20):
     data = {col: [1, 2] * (n // 2) for col in PRELIMINARY_SELECTED_COLUMNS}

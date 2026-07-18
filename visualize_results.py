@@ -1,9 +1,9 @@
 """
 visualize_results.py
 --------------------
-App Streamlit para inspeccionar y comparar modelos STATUS5.
+Streamlit app for inspecting and comparing STATUS5 models.
 
-Uso:
+Usage:
     streamlit run visualize_results.py
 """
 
